@@ -1,7 +1,7 @@
 #!/bin/bash
 
-mqtt_topic="mi_temp"
-mqtt_ip="192.168.1.60"
+mqtt_topic="sensors"
+mqtt_ip="162.30.0.103"
 
 sensors_file="/opt/sensors"
 
@@ -17,6 +17,7 @@ script_name="$(basename "$(test -L "$0" && readlink "$0" || echo "$0")")"
 
 lock_file="/var/tmp/$script_name"
 if [ -e "${lock_file}" ] && kill -0 "$(cat "${lock_file}")"; then
+    echo 'exit'
     exit 99
 fi
 
@@ -24,9 +25,9 @@ trap 'rm -f "${lock_file}"; exit' INT TERM EXIT
 echo $$ > "${lock_file}"
 
 echo "Opening and initializing HCI device"
-sudo hciconfig hci0 up
+hciconfig hci0 up
 echo "Enabling LE Mode"
-sudo btmgmt le on
+btmgmt le on
 
 while read -r item; do
     sensor=(${item//,/ })
@@ -60,18 +61,23 @@ while read -r item; do
             echo -e "${green}success${nc}"
         fi
     done
-
     temp=$(echo "$data" | tail -1 | cut -c 42-54 | xxd -r -p)
     humid=$(echo "$data" | tail -1 | cut -c 64-74 | xxd -r -p)
     batt=$(echo "ibase=16; $battery"  | bc)
     dewp=$(echo "scale=1; (243.12 * (l( $humid / 100) +17.62* $temp/(243.12 + $temp)) / 17.62 - (l( $humid / 100) +17.62* $temp/(243.12 + $temp))  )" | bc -l)
+    if [[ "dewp" < -20 ]]; then
+	dewp=-20
+    fi
+    datetime=`date +"%D %T"`
+    
     echo "  Temperature: $temp$cel"
     echo "  Humidity: $humid$per"
     echo "  Battery Level: $batt$per"
     echo "  Dew Point: $dewp$cel"
+    echo "  Time: $datetime"
 
     echo -e -n "  Publishing data via MQTT... "
-    if [[ "$temp" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    if [[ "$temp" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
         /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/temperature" -m "$temp"
     fi
 
@@ -83,9 +89,10 @@ while read -r item; do
         /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/battery" -m "$batt"
     fi
     
-    if [[ "$dewp" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+    if [[ "$dewp" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
         /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/dewpoint" -m "$dewp"
     fi
+    /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/datetime" -m "$datetime"
     echo -e "done"
 done < "$sensors_file"
 
