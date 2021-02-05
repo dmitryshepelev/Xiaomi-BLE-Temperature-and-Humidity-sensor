@@ -11,4 +11,5 @@ WORKDIR ./program
 COPY ./mi_temp.sh ./
 RUN ln -s $(pwd)/mi_temp.sh /opt/mi_temp
 
+ENTRYPOINT ["./mi_temp.sh"]
 CMD cron && tail -f /var/log/cron.log
