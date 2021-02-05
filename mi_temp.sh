@@ -78,21 +78,21 @@ while read -r item; do
 
     echo -e -n "  Publishing data via MQTT... "
     if [[ "$temp" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/temperature" -m "$temp"
+        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -u $BROKER_USERNAME -P $BROKER_PASSWORD -t "/$mqtt_topic/$name/temperature" -m "$temp"
     fi
 
     if [[ "$humid" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/humidity" -m "$humid"
+        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -u $BROKER_USERNAME -P $BROKER_PASSWORD -t "/$mqtt_topic/$name/humidity" -m "$humid"
     fi
 
     if [[ "$batt" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
-        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/battery" -m "$batt"
+        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -u $BROKER_USERNAME -P $BROKER_PASSWORD -t "/$mqtt_topic/$name/battery" -m "$batt"
     fi
     
     if [[ "$dewp" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
-        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/dewpoint" -m "$dewp"
+        /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -u $BROKER_USERNAME -P $BROKER_PASSWORD -t "/$mqtt_topic/$name/dewpoint" -m "$dewp"
     fi
-    /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/datetime" -m "$datetime"
+    /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -u $BROKER_USERNAME -P $BROKER_PASSWORD -t "/$mqtt_topic/$name/datetime" -m "$datetime"
     echo -e "done"
 done < "$sensors_file"
 
