@@ -1,2 +1,0 @@
-*/1 * * * * /opt/mi_temp | tee /tmp/mi_temp /var/log/cron.log
-

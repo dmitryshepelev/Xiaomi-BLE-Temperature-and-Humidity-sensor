@@ -76,6 +76,9 @@ while read -r item; do
     echo "  Dew Point: $dewp$cel"
     echo "  Time: $datetime"
 
+    #echo "${BROKER_USERNAME}"
+    #echo "${BROKER_PASSWORD}"
+    
     echo -e -n "  Publishing data via MQTT... "
     if [[ "$temp" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]; then
         /usr/bin/mosquitto_pub -h $mqtt_ip -V mqttv311 -t "/$mqtt_topic/$name/temperature" -m "$temp" -u ${BROKER_USERNAME} -P ${BROKER_PASSWORD}
