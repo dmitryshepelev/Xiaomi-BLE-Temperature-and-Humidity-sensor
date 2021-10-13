@@ -64,7 +64,13 @@ while read -r item; do
     temp=$(echo "$data" | tail -1 | cut -c 42-54 | xxd -r -p)
     humid=$(echo "$data" | tail -1 | cut -c 64-74 | xxd -r -p)
     batt=$(echo "ibase=16; $battery"  | bc)
-    dewp=$(echo "scale=1; (243.12 * (l( $humid / 100) +17.62* $temp/(243.12 + $temp)) / 17.62 - (l( $humid / 100) +17.62* $temp/(243.12 + $temp))  )" | bc -l)
+    # Sonntag90 Dew Point equaliation
+    # https://www.omnicalculator.com/physics/dew-point#howto
+    acoef=17.62
+    bcoef=243.12
+    alphaTH=$(echo "scale=4; l($humid / 100) + $acoef * $temp / ($bcoef + $temp)" | bc -l)
+    dewp=$(echo "scale=4; ($bcoef * $alphaTH) / ($acoef - $alphaTH)" | bc  -l)
+    #dewp=$(echo "scale=1; ($bcoef * (l($humid / 100) + $acoef * $temp / ($bcoef + $temp))) / ($acoef - (l($humid / 100) + $acoef * $temp /($bcoef + $temp)))" | bc -l)
     if [[ "dewp" < -20 ]]; then
 	dewp=-20
     fi
