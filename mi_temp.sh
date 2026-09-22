@@ -25,9 +25,9 @@ trap 'rm -f "${lock_file}"; exit' INT TERM EXIT
 echo $$ > "${lock_file}"
 
 echo "Opening and initializing HCI device"
-hciconfig hci0 up
+hciconfig hci1 up
 echo "Enabling LE Mode"
-btmgmt le on
+btmgmt -i 1 le on
 
 while read -r item; do
     sensor=(${item//,/ })
